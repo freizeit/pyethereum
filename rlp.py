@@ -2,15 +2,14 @@ def binary_length(n):
     if n == 0: return 0
     else: return 1 + binary_length(n / 256)
 
-def to_binary_array(n,L=None):
-    if L is None: L = binary_length(n)
+def to_binary_array(n):
     if n == 0: return []
     else:
         x = to_binary_array(n / 256)
         x.append(n % 256)
         return x
 
-def to_binary(n,L=None): return ''.join([chr(x) for x in to_binary_array(n,L)])
+def to_binary(n): return ''.join(chr(x) for x in to_binary_array(n))
 
 def from_binary(b):
     if len(b) == 0: return 0
@@ -61,15 +60,15 @@ def encode(s):
     if isinstance(s,(int,long)):
         if s < 0:
             raise Exception("can't handle negative ints")
-        elif s >= 0 and s < 24:
+        elif s >= 0 and s < 0x7f:
             return chr(s)
         elif s < 2**256:
             b = to_binary(s)
-            return chr(len(b) + 23) + b
+            return chr(len(b) + 0x80) + b
         else:
             b = to_binary(s)
             b2 = to_binary(len(b))
-            return chr(len(b2) + 55) + b2 + b
+            return chr(len(b2) + 0xb7) + b2 + b
     elif isinstance(s,(str,unicode)):
         if len(s) < 56:
             return chr(len(s) + 0x80) + str(s)
@@ -77,10 +76,12 @@ def encode(s):
             b2 = to_binary(len(s))
             return chr(len(b2) + 0xb7) + b2 + str(s)
     elif isinstance(s,list):
-        if len(s) < 56:
-            return chr(len(s) + 0xc0) + ''.join([encode(x) for x in s])
+        # encode the elements first so we know the overall length in bytes
+        eelems = ''.join(encode(elem) for elem in s)
+        if len(eelems) < 56:
+            return chr(len(eelems) + 0xc0) + eelems
         else:
-            b2 = to_binary(len(s))
-            return chr(len(b2) + 0xf7) + b2 + ''.join([encode(x) for x in s])
+            b2 = to_binary(len(eelems))
+            return chr(len(b2) + 0xf7) + b2 + eelems
     else:
         raise Exception("Encoding for "+s+" not yet implemented")
