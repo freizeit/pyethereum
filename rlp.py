@@ -72,15 +72,15 @@ def encode(s):
             return chr(len(b2) + 55) + b2 + b
     elif isinstance(s,(str,unicode)):
         if len(s) < 56:
-            return chr(len(s) + 64) + str(s)
+            return chr(len(s) + 0x80) + str(s)
         else:
             b2 = to_binary(len(s))
-            return chr(len(b2) + 119) + b2 + str(s)
+            return chr(len(b2) + 0xb7) + b2 + str(s)
     elif isinstance(s,list):
         if len(s) < 56:
-            return chr(len(s) + 128) + ''.join([encode(x) for x in s])
+            return chr(len(s) + 0xc0) + ''.join([encode(x) for x in s])
         else:
             b2 = to_binary(len(s))
-            return chr(len(b2) + 183) + b2 + ''.join([encode(x) for x in s])
+            return chr(len(b2) + 0xf7) + b2 + ''.join([encode(x) for x in s])
     else:
         raise Exception("Encoding for "+s+" not yet implemented")
